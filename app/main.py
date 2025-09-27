@@ -73,9 +73,21 @@ async def load_model():
     global model_data
     try:
         logger.info("Loading churn prediction model...")
-        with open('../models/churn_model.pkl', 'rb') as f:
-            model_data = pickle.load(f)
-        logger.info(f"Model loaded successfully! Accuracy: {model_data['accuracy']:.4f}")
+        # Try different model paths for flexibility
+        model_paths = ['../models/churn_model.pkl', 'models/churn_model.pkl', './models/churn_model.pkl']
+
+        for model_path in model_paths:
+            try:
+                with open(model_path, 'rb') as f:
+                    model_data = pickle.load(f)
+                logger.info(f"Model loaded successfully from {model_path}! Accuracy: {model_data['accuracy']:.4f}")
+                break
+            except FileNotFoundError:
+                continue
+
+        if model_data is None:
+            raise FileNotFoundError("Model file not found in any expected location")
+
     except Exception as e:
         logger.error(f"Failed to load model: {str(e)}")
         raise RuntimeError(f"Could not load model: {str(e)}")

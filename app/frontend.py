@@ -12,7 +12,23 @@ from typing import Dict, Any
 import io
 
 # Configuration
-API_BASE_URL = "http://127.0.0.1:8000"
+import os
+
+# Check if running in Docker (via environment variable)
+if os.getenv("API_BASE_URL"):
+    # Running in Docker - use internal service name
+    API_BASE_URL = os.getenv("API_BASE_URL")
+else:
+    # Running locally - check if nginx proxy is available
+    try:
+        import requests
+        response = requests.get("http://localhost/health", timeout=2)
+        if response.status_code == 200:
+            API_BASE_URL = "http://localhost/api"
+        else:
+            API_BASE_URL = "http://127.0.0.1:8000"
+    except:
+        API_BASE_URL = "http://127.0.0.1:8000"
 
 def check_api_health() -> bool:
     """Check if the FastAPI backend is running."""
