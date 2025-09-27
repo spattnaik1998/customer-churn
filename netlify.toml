@@ -1,0 +1,64 @@
+# Netlify configuration for Streamlit frontend deployment
+[build]
+  publish = "app/"
+  command = """
+    pip install -r requirements.txt &&
+    mkdir -p dist &&
+    cp app/frontend.py dist/ &&
+    cp requirements.txt dist/ &&
+    echo 'Streamlit app prepared for deployment'
+  """
+
+[build.environment]
+  PYTHON_VERSION = "3.11"
+  API_BASE_URL = "https://churn-prediction-api.onrender.com"
+
+# Redirect rules for Streamlit
+[[redirects]]
+  from = "/_stcore/*"
+  to = "/_stcore/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/health"
+  to = "/health"
+  status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Headers for Streamlit
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Content-Security-Policy = "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: https:; connect-src 'self' https: wss: ws:;"
+
+# Environment-specific settings
+[context.production.environment]
+  API_BASE_URL = "https://churn-prediction-api.onrender.com"
+
+[context.deploy-preview.environment]
+  API_BASE_URL = "https://churn-prediction-api.onrender.com"
+
+[context.branch-deploy.environment]
+  API_BASE_URL = "https://churn-prediction-api.onrender.com"
+
+# Custom build settings for Streamlit
+[build.processing]
+  skip_processing = false
+
+[build.processing.css]
+  bundle = true
+  minify = true
+
+[build.processing.js]
+  bundle = true
+  minify = true
+
+[build.processing.html]
+  pretty_urls = true

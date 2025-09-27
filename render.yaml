@@ -1,0 +1,45 @@
+# Render Blueprint for Customer Churn Prediction API
+services:
+  - type: web
+    name: churn-prediction-api
+    env: docker
+    dockerfilePath: ./app/Dockerfile.backend
+    dockerContext: .
+    plan: starter
+    region: oregon
+    branch: main
+    healthCheckPath: /health
+    numInstances: 1
+
+    envVars:
+      - key: PYTHONPATH
+        value: /app
+      - key: PORT
+        value: 8000
+      - key: HOST
+        value: 0.0.0.0
+
+    # Auto-deploy on push to main
+    autoDeploy: true
+
+    # Build command to ensure model is available
+    buildCommand: |
+      pip install pandas numpy scikit-learn
+      cd src && python train_model.py && cd ..
+
+    # Start command
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+
+    # Scaling configuration
+    scaling:
+      minInstances: 1
+      maxInstances: 3
+      targetMemoryPercent: 70
+      targetCPUPercent: 70
+
+databases:
+  # Optional: Add PostgreSQL for future enhancements
+  # - name: churn-prediction-db
+  #   databaseName: churn_db
+  #   user: churn_user
+  #   plan: starter
