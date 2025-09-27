@@ -28,7 +28,7 @@ services:
       cd src && python train_model.py && cd ..
 
     # Start command
-    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    startCommand: cd app && uvicorn main:app --host 0.0.0.0 --port $PORT
 
     # Scaling configuration
     scaling:

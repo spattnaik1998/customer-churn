@@ -32,22 +32,72 @@ NETLIFY_SITE_ID=your_netlify_site_id
 
 ## 🐳 Backend Deployment (Render)
 
-### Option 1: Using GitHub Actions (Recommended)
+### Option 1: Manual Render Web Service Setup (Step-by-Step)
+
+1. **Create Render Account**
+   - Go to [render.com](https://render.com) and sign up
+   - Connect your GitHub account
+
+2. **Create New Web Service**
+   - Click "New +" → "Web Service"
+   - Connect your GitHub repository
+   - Select your repository: `customer-churn-prediction`
+
+3. **Configure Web Service Settings**
+   ```
+   Name: churn-prediction-api
+   Region: Oregon (US West)
+   Branch: main
+   Root Directory: (leave blank)
+   Runtime: Docker
+   ```
+
+4. **Docker Configuration**
+   ```
+   Dockerfile Path: ./app/Dockerfile.backend
+   Docker Context: .
+   Docker Build Arguments: (leave blank)
+   ```
+
+5. **Build & Deploy Settings**
+   ```
+   Build Command: pip install pandas numpy scikit-learn && cd src && python train_model.py && cd ..
+   Start Command: cd app && uvicorn main:app --host 0.0.0.0 --port $PORT
+   ```
+
+6. **Instance Configuration**
+   ```
+   Instance Type: Starter ($7/month)
+   Auto-Deploy: Yes
+   ```
+
+7. **Environment Variables** (Add these in the Environment tab)
+   ```
+   PYTHONPATH=/app
+   PORT=8000
+   HOST=0.0.0.0
+   ```
+
+8. **Health Check Configuration**
+   ```
+   Health Check Path: /health
+   ```
+
+9. **Click "Create Web Service"**
+
+### Option 2: Using GitHub Actions (Automated)
 1. Get your Render API key from [Render Dashboard](https://dashboard.render.com/account/settings)
-2. Create a new Web Service on Render connected to your GitHub repo
-3. Copy the Service ID from the URL
+2. Complete manual setup above first to get Service ID
+3. Copy the Service ID from the URL (e.g., `srv-xxxxxxxxxxxxxxxxxxxxx`)
 4. Add secrets to GitHub repository
 5. Push to main branch to trigger deployment
 
-### Option 2: Manual Render Deployment
-1. Connect your GitHub repository to Render
-2. Use these settings:
-   ```
-   Build Command: pip install pandas numpy scikit-learn && cd src && python train_model.py && cd ..
-   Start Command: uvicorn main:app --host 0.0.0.0 --port $PORT
-   Dockerfile Path: ./app/Dockerfile.backend
-   Docker Context: .
-   ```
+### Option 3: Using render.yaml Blueprint
+1. Push the `render.yaml` file to your repository
+2. Go to Render Dashboard → "Blueprints"
+3. Click "New Blueprint"
+4. Connect your repository
+5. Render will automatically create services based on `render.yaml`
 
 ### Environment Variables on Render
 ```
@@ -215,3 +265,34 @@ For deployment issues:
 2. Review logs in the respective platforms
 3. Verify environment variables and secrets
 4. Test locally with Docker first
+
+---
+
+## 📋 Quick Reference - Render Configuration
+
+### Copy-Paste Settings for Render Web Service
+
+**Service Configuration:**
+```
+Name: churn-prediction-api
+Runtime: Docker
+Dockerfile Path: ./app/Dockerfile.backend
+Docker Context: .
+Build Command: pip install pandas numpy scikit-learn && cd src && python train_model.py && cd ..
+Start Command: cd app && uvicorn main:app --host 0.0.0.0 --port $PORT
+Health Check Path: /health
+```
+
+**Environment Variables:**
+```
+PYTHONPATH=/app
+PORT=8000
+HOST=0.0.0.0
+```
+
+**Expected URLs after deployment:**
+- API Base: `https://churn-prediction-api.onrender.com`
+- Health Check: `https://churn-prediction-api.onrender.com/health`
+- API Docs: `https://churn-prediction-api.onrender.com/docs`
+- Single Prediction: `https://churn-prediction-api.onrender.com/predict`
+- Batch Prediction: `https://churn-prediction-api.onrender.com/predict-batch`
